@@ -61,10 +61,10 @@ with open('Locations/geolocations.tsv') as locations:
 		geocode = ",".join([str(fields[1]), str(fields[2]), DEFAULT_SEARCH_RADIUS])
 		query_hash['geocode'] = geocode
 
-		with open(file_path, mode) as datafile:
+		with open(file_path, mode, encoding='utf-8') as datafile:
 			while True:
 				try:
-					time.sleep(6) # wait for 6 seconds so that rate limit doesnt exhaust
+					#time.sleep(6) # wait for 6 seconds so that rate limit doesnt exhaust
 					r = api.request('search/tweets', query_hash)
 
 					remaining_requests = int(r.headers['x-rate-limit-remaining'])
