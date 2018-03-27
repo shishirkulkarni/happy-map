@@ -64,7 +64,7 @@ with open('Locations/geolocations.tsv') as locations:
 		with open(file_path, mode, encoding='utf-8') as datafile:
 			while True:
 				try:
-					time.sleep(1000) # wait for 6 seconds so that rate limit doesnt exhaust
+					time.sleep(6) # wait for 6 seconds so that rate limit doesnt exhaust
 					r = api.request('search/tweets', query_hash)
 
 					remaining_requests = int(r.headers['x-rate-limit-remaining'])
