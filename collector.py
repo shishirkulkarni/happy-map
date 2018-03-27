@@ -96,3 +96,4 @@ with open('Locations/geolocations.tsv') as locations:
 					print('An error occured')
 					break
 
+
