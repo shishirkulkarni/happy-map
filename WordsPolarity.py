@@ -4,6 +4,7 @@
 Created on Sun Apr  8 21:30:44 2018
 
 @author: gayatrigadre
+Prerequisite: Install nltk python library
 Execution: python WordsPolarity.py <inputFile>
 
 """
@@ -36,7 +37,7 @@ def get_scores(line,outputFile):
     
 def getOutputFileName(inputFile):
     ''' Get new output file name'''
-    fname = sys.argv[1].split('.')
+    fname = inputFile.split('.')
     fileName = fname[0]+"Output.txt"
     return fileName
 
