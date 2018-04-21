@@ -32,6 +32,9 @@ public class TwitterPolarity {
 	private static final Map<String, Double> dictionary = new HashMap<String, Double>();
 	
 
+	/*
+	 *  dictionary stored in hashmap: key is tweet, value is polarity
+	 */
 	public static void readToHashMap() throws NumberFormatException, IOException{
 		BufferedReader in =  new BufferedReader(new FileReader("../data/all/dictionary.v4.txt"));
 		String line = "";
@@ -43,10 +46,13 @@ public class TwitterPolarity {
 		in.close();
 	}
 
+	/*
+	 *  Mapper: <Text(tweet), MapWritable<dict_word, polarity>>
+	 */
   public static class PolarityMapper extends MapReduceBase
       implements Mapper<LongWritable, Text, Text, MapWritable> {
 
-	private final static String REGEX = "([a-zA-Z]+)";
+	private final static String REGEX = "([a-zA-Z]+)"; //only match words with 1 or more characters
 	private final static MapWritable map = new MapWritable();
     
     public void map(LongWritable key, Text val,
@@ -58,6 +64,7 @@ public class TwitterPolarity {
       String line = val.toString();
       String words[] = line.split(" ");
       
+      //Check for dictionary words in tweet and store in map
       for(int i = 0; i < words.length; i++){
     	  Matcher m = p.matcher(words[i]);
     	  if(m.find()){
@@ -76,15 +83,17 @@ public class TwitterPolarity {
   }
 
 
-
+  /*
+   * Reducer: <Text(tweet), DoubleWritable(average_polarity)>
+   */
   public static class PolarityReducer extends MapReduceBase
       implements Reducer<Text, MapWritable, Text, DoubleWritable> {
 
-	  //reducing function - add up values for each key to get count of conferences per city
     public void reduce(Text key, Iterator<MapWritable> values,
         OutputCollector<Text, DoubleWritable> output, Reporter reporter)
         throws IOException {
 
+    	//get average polarity for each tweet
     	double avg = 0.0;
     	double sum = 0.0;
     	if(values.hasNext()){
@@ -107,9 +116,11 @@ public class TwitterPolarity {
    * "driver" for the MapReduce job.
    */
   public static void main(String[] args) throws Exception {
-	  readToHashMap(); 
+	  readToHashMap(); //read from dictionary file and store to hashmap
 	  System.out.println(dictionary.toString());
 	  System.out.println(dictionary.size());
+	  
+	//start of MapReduce job  
     JobConf conf = new JobConf(TwitterPolarity.class);
     conf.setJobName("MapReduce");
     
