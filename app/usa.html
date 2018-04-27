@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Happy Map</title>
+	<style type="text/css">
+		#map {
+			width: 80vw;
+			height: 80vh;
+		}
+
+		.state {
+			/*fill: #e3e3e3;*/
+			stroke: #333;
+			stroke-width: 0.5;
+		}
+
+	</style>
+</head>
+<body>
+	<div id="map"></div>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="https://d3js.org/topojson.v2.min.js"></script>	<script type="text/javascript">
+		var viewport = document.documentElement.getBoundingClientRect()
+
+		var width = viewport.width,
+				height = viewport.height;
+
+		var svg = d3.select('#map')
+					.append('svg')
+					.attr('height', height)
+					.attr('width', width),
+
+			projection = d3.geoAlbersUsa()
+						.translate([width / 2, height / 2])
+						.scale(1000),
+			
+			path = d3.geoPath().projection(projection),
+			color = d3.scaleLinear().domain([1, 100]).range([0xA80000, 0xE80000]);
+
+		d3.queue(2)
+		.defer(d3.json, "us-states.json")
+		.defer(d3.tsv, "geolocations.tsv")
+		.await(done);
+
+		function done(error, states, locations) {
+			// draw the map
+			svg.selectAll("path")
+				.data(states.features)
+				.enter()
+				.append("path")
+				.attr('class', 'state')
+				.attr("d", path)
+				.style('fill', '#' + parseInt(color(20)).toString(16));
+
+			// draw the text
+			svg.selectAll("text")
+				.data(states.features)
+				.enter()
+				.append("svg:text")
+				.attr('class', 'name')
+				.text(function(d) {
+					return d.properties.name;
+				})
+				.attr('x', function(d) {
+					return path.centroid(d)[0];
+				})
+				.attr('y', function(d) {
+					return path.centroid(d)[1];
+				})
+				.attr('text-anchor', 'middle')
+				.attr('font-size', '10pt');
+
+			// draw some bubbles
+			svg.selectAll("circle")
+				.data(locations)
+				.enter()
+				.append("circle")
+				.each(function(d) {
+					// debugger;
+					var location = projection([parseFloat(d.long), parseFloat(d.lat)])
+					d3.select(this)
+						.attr('cx', location[0])
+						.attr('cy', location[1])
+						.attr('r', 10);
+				})
+				.style("fill", "blue");
+		}
+	</script>
+</body>
+</html>
