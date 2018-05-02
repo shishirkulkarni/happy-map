@@ -1,0 +1,3 @@
+for ENTRY in *; do hadoop fs -put `echo "$ENTRY" | sed 's/ /%20/g'`  project/SB/`echo "$ENTRY" | sed 's/ //g'`; done
+hadoop fs -ls project/SB | for ENTRY in `awk '{print $8}'`; do yarn jar /tmp/polarity.jar $ENTRY $ENTRY"_OUT"; done
+hadoop fs -get project/SB/*_OUT .
