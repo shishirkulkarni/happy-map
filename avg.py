@@ -1,6 +1,9 @@
 import sys
 import os
 import numpy as np
+from numpy import linalg as LA
+from sklearn import preprocessing
+import re
 
 def list_files(dir):
 	r = []
