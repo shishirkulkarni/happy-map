@@ -41,7 +41,7 @@ def write_polarity(file):
 	#write polarity to each subdir
 	newpath = '\\'.join(subdirs[0:len(subdirs)-1]) + '\\polarity.tsv'
 	f = open(newpath, 'w+')
-	f.write(key + '\t' + value)
+	f.write(key + '\t' + value + '\n')
 	f.close()
 		#print(key + '\t' + value)
 
