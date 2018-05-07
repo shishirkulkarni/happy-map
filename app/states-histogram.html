@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Happy Map</title>
+	<style type="text/css">
+		body {
+		  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+		}
+
+		#map {
+			width: 80vw;
+			height: 50vh;
+		}
+
+		.navigator {
+		    list-style: none;
+		    display: flex;
+		    font-size: 20px;
+		    font-family: system-ui;
+		}
+
+		.navigator li {
+			padding: 20px;
+		}
+
+		.navigator li:hover {
+			cursor: pointer;
+			background: #cecece
+		}
+
+		.navigator li.active {
+			background: #cecece
+		}
+
+		#title {
+			text-align: center;
+		}
+
+		.pos {
+			fill: #66ff33;
+		}
+
+		.neu {
+			fill: #ffff33;
+		}
+
+		.neg {
+			fill: #ff4d4d;
+		}
+		.bar {
+		  /*fill: #0080FF; */
+		  stroke: black;
+		  stroke-width: 1
+		}
+
+		.bar:hover {
+		  fill: cyan
+		}
+
+		.text {
+		  fill: black;
+		  font-family: sans-serif
+		}
+	</style>
+</head>
+<body>
+	<ul class="navigator">
+		<li data-index="0" class="active temp" onclick="switchTopic(this)">Gun Control</li>
+		<li data-index="1" onclick="switchTopic(this)">Intl Women's day</li>
+		<li data-index="2" onclick="switchTopic(this)">MeToo</li>
+		<li data-index="3" onclick="switchTopic(this)">Spring Break</li>
+		<li data-index="4" onclick="switchTopic(this)">Disney World</li>
+		<li data-index="5" onclick="switchTopic(this)">Tariffs</li>
+	</ul>
+	<h1 id="title"></h1>
+	<div id="map"></div>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="https://d3js.org/topojson.v2.min.js"></script>
+	<script type="text/javascript" src="lib.js"></script>
+	<script type="text/javascript">
+		var viewport = document.documentElement.getBoundingClientRect()
+
+		var width = viewport.width,
+				height = viewport.height;
+
+		var svg = d3.select('#map')
+					.append('svg')
+					.attr('height', height)
+					.attr('width', width);
+
+		var dataPaths = [
+			"data/gun control/state/state_polarity.tsv",
+			"data/international women's day/state/state_polarity.tsv",
+			"data/metoo/state/state_polarity.tsv",
+			"data/Spring Break/state/state_polarity.tsv",
+			"data/Disney World/state/state_polarity.tsv",
+			"data/tariffs/state/state_polarity.tsv"
+		];
+
+		d3.tsv(dataPaths[0], function(data) {
+			  console.log(data[0]);
+		});
+
+		// Start at the default topic
+		document.querySelector(".navigator li[data-index='0']").dispatchEvent(new Event("click"));
+		
+		function switchTopic(e) {
+			var navs = document.querySelectorAll(".navigator li");
+				navs.forEach(function(nav) { 
+					nav.classList.remove('active');
+				});
+
+				e.classList.add("active");
+				document.querySelector("#title").textContent = e.textContent;
+				
+				d3.queue(3)
+					.defer(d3.tsv, dataPaths[parseInt(e.dataset['index'])])
+					.await(getData);
+
+
+			function getData(error, data) {
+				console.log(data[0])
+			  	if(error) { console.log(error); }
+			
+				// Clear previous bar charts
+				var bars = svg.selectAll(".bar")
+							.remove()
+							.exit();
+
+				// Normalize values
+				var normalPolarity = d3.scaleLinear().domain([-1.0, 1.0]).range([0.0, 50.0]);
+				for ( var i in data ){
+					console.log(data[i].Polarity)
+    				console.log(normalPolarity(data[i]['Polarity']));
+				}
+				
+				// Draw bar charts for selected topic  		
+				bars.data(data)
+					.enter()
+				    .append("rect")
+				     		.attr("class", "bar")
+				     		.attr("height", function(datapoint, i) {
+				     			return (normalPolarity(datapoint['Polarity']) * 8)})
+				           	.attr("width","40")
+				           	.attr("x", function(datapoint, i) {return i * 50 + 220})
+				           	.attr("y", function(datapoint, i) {return 350 - (normalPolarity(datapoint['Polarity']) * 8)})
+				           	 // add this attribute to change the color of the rect
+							.attr("fill", function(datapoint) {
+							    if (normalPolarity(datapoint['Polarity']) < 25) {
+							      return "red";
+							    } 
+							    return "green"; }
+				           	);
+
+				// Clear the existing bar chart lables
+				var labels = svg.selectAll(".text")
+							.remove()
+							.exit();
+
+				// Add state names to each bar chart
+				labels
+				    .data(data)
+				    .enter().append("text")
+				    .attr("class","text")
+				    .text(function(d) {return d['Location'];})
+				    	.attr("x", function(datapoint, i) {return (i * 50) + 231})
+				        .attr("y", function(datapoint, i) {return 335 - (normalPolarity(datapoint['Polarity'])) * 8});
+			}
+		}
+	</script>
+</body>
+</html>
